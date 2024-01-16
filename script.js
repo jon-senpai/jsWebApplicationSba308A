@@ -1,20 +1,28 @@
 let weather = {
   apiKey: "97bae40a668955f5116e88bc14830a69",
   fetchWeather: function (city) {
-    fetch(
-      "https://api.openweathermap.org/data/2.5/weather?q=" +
-        city +
-        "&units=metric&appid=" +
-        this.apiKey
-    )
-      .then((response) => {
-        if (!response.ok) {
-          alert("No weather found.");
-          throw new Error("No weather found.");
-        }
-        return response.json();
-      })
-      .then((data) => this.displayWeather(data));
+    return new Promise((resolve, reject) => {
+      fetch(
+        "https://api.openweathermap.org/data/2.5/weather?q=" +
+          city +
+          "&units=metric&appid=" +
+          this.apiKey
+      )
+        .then((response) => {
+          if (!response.ok) {
+            reject("No weather found.");
+            throw new Error("No weather found.");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          this.displayWeather(data);
+          resolve(data);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
   },
   displayWeather: function (data) {
     const { name } = data;
@@ -33,7 +41,13 @@ let weather = {
     document.querySelector(".weather").classList.remove("loading");
   },
   search: function () {
-    this.fetchWeather(document.querySelector(".search-bar").value);
+    this.fetchWeather(document.querySelector(".search-bar").value)
+      .then((data) => {
+        console.log("Weather data:", data);
+      })
+      .catch((error) => {
+        console.error("Error fetching weather:", error);
+      });
   },
 };
 
@@ -49,4 +63,10 @@ document
     }
   });
 
-weather.fetchWeather("Denver");
+weather.fetchWeather("Denver")
+  .then((data) => {
+    console.log("Weather data for Denver:", data);
+  })
+  .catch((error) => {
+    console.error("Error fetching weather for Denver:", error);
+  });
